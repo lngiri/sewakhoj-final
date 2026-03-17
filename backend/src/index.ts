@@ -2,16 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
-import { connectDB } from './config/database';
-import { initializeSocket } from './config/socket';
-import authRoutes from './routes/auth';
-import serviceRoutes from './routes/services';
-import technicianRoutes from './routes/technicians';
-import jobRoutes from './routes/jobs';
-import chatRoutes from './routes/chat';
-import reviewRoutes from './routes/reviews';
-import adminRoutes from './routes/admin';
-import paymentRoutes from './routes/payments';
+import { connectDB } from './config/database.js';
+import { initializeSocket } from './config/socket.js';
+import authRoutes from './routes/auth.js';
+import serviceRoutes from './routes/services.js';
+import technicianRoutes from './routes/technicians.js';
+import jobRoutes from './routes/jobs.js';
+import chatRoutes from './routes/chat.js';
+import reviewRoutes from './routes/reviews.js';
+import adminRoutes from './routes/admin.js';
+import paymentRoutes from './routes/payments.js';
 
 dotenv.config();
 
