@@ -122,6 +122,7 @@ router.post('/check-phone', async (req, res) => {
 // Register new user (without OTP)
 router.post('/register', async (req, res) => {
   try {
+    console.log('Register request body:', req.body);
     const { phoneNumber, name, role = 'customer' } = req.body;
     
     // Validate phone number format
@@ -143,12 +144,14 @@ router.post('/register', async (req, res) => {
     }
     
     // Create new user
+    console.log('Creating user with:', { phoneNumber, name, role });
     const user = await User.create({
       phoneNumber,
       name,
       role,
       isVerified: true
     });
+    console.log('User created:', user);
     
     // Generate JWT token
     const token = jwt.sign(
@@ -169,7 +172,8 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Register error:', error);
+    res.status(500).json({ success: false, message: error.message, stack: error.stack });
   }
 });
 
