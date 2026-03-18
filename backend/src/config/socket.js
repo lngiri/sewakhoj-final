@@ -4,10 +4,26 @@ const Message = require('../models/Message');
 const Chat = require('../models/Chat');
 
 const initializeSocket = (server) => {
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    "https://sewakhoj-frontend-only-dpxn.vercel.app",
+    "https://sewakhoj.com",
+    "http://localhost:3000"
+  ];
+
   const io = new SocketIOServer(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
-      methods: ["GET", "POST"]
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      methods: ["GET", "POST"],
+      credentials: true
     }
   });
 
