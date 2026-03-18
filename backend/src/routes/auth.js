@@ -92,4 +92,131 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
+// Check if phone number exists
+router.post('/check-phone', async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    // Validate phone number format (Nepal: +977 98XXXXXXXX)
+    const phoneRegex = /^\+977\s?98\d{8}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid phone number format. Use: +977 98XXXXXXXX' 
+      });
+    }
+    
+    // Check if user exists
+    const user = await User.findOne({ phoneNumber });
+    
+    res.json({
+      success: true,
+      exists: !!user,
+      phoneNumber
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Register new user (without OTP)
+router.post('/register', async (req, res) => {
+  try {
+    const { phoneNumber, name, role = 'customer' } = req.body;
+    
+    // Validate phone number format
+    const phoneRegex = /^\+977\s?98\d{8}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid phone number format. Use: +977 98XXXXXXXX' 
+      });
+    }
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ phoneNumber });
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Phone number already registered. Please login.' 
+      });
+    }
+    
+    // Create new user
+    const user = await User.create({
+      phoneNumber,
+      name,
+      role,
+      isVerified: true
+    });
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        isVerified: user.isVerified
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Direct login (without OTP)
+router.post('/login', async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    // Validate phone number format
+    const phoneRegex = /^\+977\s?98\d{8}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid phone number format. Use: +977 98XXXXXXXX' 
+      });
+    }
+    
+    // Find user
+    const user = await User.findOne({ phoneNumber });
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found. Please register first.' 
+      });
+    }
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        isVerified: user.isVerified
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;
